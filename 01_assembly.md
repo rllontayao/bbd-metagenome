@@ -1,20 +1,15 @@
 BBD Metagenome: Assembly
 ================
 Rowwyn Lontayao
-2026-11-03
-
-<!--
-Explain what this step does and why, and copy each command you ran into a
-bash chunk. R chunks run from the top of the repository.
--->
+2026-11-04
 
 ## Metagenome Assembly Using Flye
 
 The Black Band Disease (BBD) metagenomic sequencing reads were assembled
 using Flye, a genome assembler designed for long-read sequencing data.
 The purpose of this step was to combine overlapping nanopore reads into
-longer contiguous sequences (contigs), which can be used to investigate
-the microbial community associated with BBD.
+longer contiguous sequences (contigs), which could then be used to
+investigate the microbial community associated with BBD.
 
 Flye was run in metagenome mode (`--meta`) because the sequencing data
 contained DNA from multiple microorganisms. The assembly was performed
@@ -35,33 +30,53 @@ The Flye assembly produced the following results:
 
 The assembly contained 7,972 contigs with a combined length of
 approximately 66.63 Mb. The largest contig was approximately 4.71 Mb,
-while the N50 was 12,994 bp, indicating that half of the assembled
-sequence length was contained in contigs of at least this size.
+while the N50 was 12,994 bp. This means that half of the total assembled
+sequence length was contained in contigs of at least 12,994 bp.
 
-The resulting assembly graph was visualised using Bandage to examine
-connections between assembled sequences. The graph contained several
-large connected structures alongside numerous smaller fragments,
-illustrating the complexity of the metagenomic assembly.
+### Assembly Graph
+
+The resulting Flye assembly graph was visualised using Bandage to
+examine connections between assembled sequences. The graph contained
+several large circular and interconnected structures alongside numerous
+smaller fragments, reflecting the complexity of the BBD metagenomic
+assembly.
+
+Although some structures appeared circular, their shapes alone do not
+confirm that they represent complete bacterial chromosomes.
 
 The assembled contigs were subsequently used for genome binning with
 MetaBAT2.
 
-### Commands Used
+### Processing Log
+
+The sequencing reads were linked to the working directory before running
+Flye.
 
 ``` bash
 cd ~/bbd-metagenome/flye
 
 ln -s /pvol/data/metagenome_assembly/bbd_0.1.fastq.gz .
+```
 
+Flye was then submitted to the SLURM scheduler using the following
+command:
+
+``` bash
 sbatch run_flye_bbd.sh
 ```
 
-``` bash
-#!/bin/bash
-#SBATCH --time=720
-#SBATCH --ntasks=12 --mem=20gb
+The assembly was performed using the script
+[run_flye_bbd.sh](flye/run_flye_bbd.sh).
 
-echo "Starting flye bbd in $(pwd) at $(date)"
+The main Flye command used in the script was:
+
+``` bash
 flye --nano-hq bbd_0.1.fastq.gz --threads 12 --out-dir bbd --meta
-echo "Finished flye bbd in $(pwd) at $(date)"
 ```
+
+The `--nano-hq` option specified the nanopore read type, `--threads 12`
+allocated 12 processing threads, `--out-dir bbd` specified the output
+directory, and `--meta` enabled metagenome assembly mode.
+
+The resulting assembly statistics and graph were examined before
+proceeding to genome binning.

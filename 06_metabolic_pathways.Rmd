@@ -1,6 +1,7 @@
+
 ---
 title: "BBD Metagenome: Metabolic Pathways"
-author: "Your Name"
+author: "Rowwyn Lontayao"
 date: "`r Sys.Date()`"
 output:
   github_document:
@@ -9,17 +10,120 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# Bash chunks are a record of commands you ran in the Terminal. Knitting shows
-# them but doesn't run them again.
+
+# Display recorded Bash commands without executing them when knitting.
 knitr::opts_hooks$set(engine = function(options) {
   if (options$engine == "bash") options$eval <- FALSE
   options
 })
 ```
 
-<!--
-Explain what this step does and why, and copy each command you ran into a
-bash chunk. R chunks run from the top of the repository.
--->
+## Metabolic Pathway Analysis Using MinPath
 
-Metabolic pathways inferred from the Prokka annotations with MinPath. Commands for this step were run in `minpath/`.
+Following gene prediction and annotation with Prokka, the potential metabolic pathways of the 17 selected genome bins were investigated using MinPath.
+
+MinPath uses annotated enzyme information to infer a parsimonious set of metabolic pathways that could explain the observed genes. The purpose of this step was to investigate the potential metabolic functions of microorganisms associated with Black Band Disease (BBD), particularly photosynthesis and sulfur-related metabolism.
+
+Enzyme Commission (EC) numbers were extracted from the Prokka annotation tables and used as inputs for MinPath.
+
+### Metabolic Pathway Results
+
+MinPath analysis was completed for all 17 selected genome bins, producing 17 pathway report files.
+
+Two pathways were examined in detail:
+
+- **PWY-101:** Photosynthesis light reactions
+- **PWY-5360:** Superpathway of tetrathionate reduction
+
+These pathways were selected to investigate the potential contributions of photosynthetic and sulfur-associated microorganisms to the BBD microbial community.
+
+### Photosynthesis Light Reactions (PWY-101)
+
+The pathway search identified genes associated with PWY-101 in four genome bins.
+
+| Genome bin | Gene families found | MinPath pathway retained |
+|---|---:|---|
+| contig_113 | 1 of 4 | No |
+| metabat.21 | 1 of 4 | Yes |
+| metabat.39 | 1 of 4 | No |
+| metabat.40 | 4 of 4 | Yes |
+
+The strongest evidence for photosynthesis was found in `metabat.40`, which contained all four gene families associated with PWY-101 and had the pathway retained by MinPath.
+
+GTDB-Tk classified `metabat.40` within the genus *Roseofilum*, a group of filamentous cyanobacteria associated with BBD.
+
+The identification of photosynthesis-related genes in this bin is consistent with the role of cyanobacteria as photosynthetic members of the BBD microbial community.
+
+Although MinPath also retained PWY-101 in `metabat.21`, only one of the four associated gene families was detected. Therefore, this result provides much weaker evidence for a complete photosynthetic pathway.
+
+**Question 4.1 — Photosynthesis**
+
+Four genome bins contained at least one gene family associated with PWY-101. Of these, `metabat.40` contained the complete set of four gene families.
+
+MinPath retained PWY-101 in two bins, `metabat.21` and `metabat.40`.
+
+Overall, `metabat.40` provides the strongest genomic evidence for photosynthetic potential in the analysed BBD community.
+
+### Tetrathionate Reduction (PWY-5360)
+
+The search for PWY-5360 identified a match in only one genome bin.
+
+| Genome bin | Gene families found | MinPath pathway retained |
+|---|---:|---|
+| metabat.69 | 1 of 3 | No |
+
+GTDB-Tk classified `metabat.69` within the order Campylobacterales, family Arcobacteraceae and genus *Halarcobacter*.
+
+Only one of the three gene families associated with PWY-5360 was detected, and MinPath did not retain the pathway.
+
+This provides limited evidence for a gene associated with tetrathionate reduction but does not establish that the organism possesses the complete pathway.
+
+**Question 4.2 — Tetrathionate Reduction**
+
+One genome bin, `metabat.69`, contained a gene family associated with PWY-5360.
+
+Because only one bin had a match, there were no other matching bins with which to compare its taxonomic family.
+
+The bin was classified within the family Arcobacteraceae. However, the incomplete gene-family evidence and the absence of pathway retention mean that complete tetrathionate reduction cannot be inferred from this result.
+
+### Biological Interpretation
+
+The metabolic pathway results provide insights into the potential functional roles of microorganisms within the BBD community.
+
+The detection of all four photosynthesis-related gene families in `metabat.40`, together with its classification as *Roseofilum*, supports the presence of a cyanobacterial member with photosynthetic potential.
+
+In contrast, the limited evidence for tetrathionate reduction suggests that the analysed genome bins do not provide strong support for a complete PWY-5360 pathway.
+
+This does not necessarily mean that tetrathionate reduction or other sulfur transformations are absent from the BBD community. Some organisms may not have been recovered as sufficiently complete genome bins, and incomplete assemblies may be missing genes required to identify a pathway.
+
+Furthermore, MinPath predictions are based on annotated genes rather than direct measurements of microbial activity. Additional experimental evidence would be needed to confirm whether these metabolic processes are occurring within BBD lesions.
+
+### Processing Log
+
+The metabolic pathway analysis was performed in the `minpath/` directory.
+
+EC-number annotations were extracted from the Prokka `.tsv` files to create the input files for MinPath.
+
+The resulting files were named using the corresponding genome bin identifiers with the `.ec` extension.
+
+The input files were checked using:
+
+```{bash, eval=FALSE}
+cd ~/bbd-metagenome/minpath
+
+ls *.ec | wc -l
+```
+
+MinPath was then used to analyse the EC-number inputs and generate pathway reports for each genome bin.
+
+The resulting report files were checked using:
+
+```{bash, eval=FALSE}
+ls *.ec.report | wc -l
+```
+
+This confirmed that 17 pathway report files had been generated.
+
+The reports were examined for the two pathways of interest, PWY-101 and PWY-5360, to determine which genome bins contained matching gene families and whether MinPath retained the pathways.
+
+The results were then compared with the GTDB-Tk taxonomic classifications to investigate potential links between microbial identity and metabolic function.

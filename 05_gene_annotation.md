@@ -1,0 +1,125 @@
+BBD Metagenome: Gene Annotation
+================
+Rowwyn Lontayao
+2026-11-04
+
+## Gene Prediction and Annotation Using Prokka
+
+Following taxonomic classification with GTDB-Tk, the 17 selected genome
+bins were analysed using Prokka, a software tool for predicting and
+annotating genes in prokaryotic genomes.
+
+The purpose of this step was to identify potential protein-coding genes
+and assign functional information to the reconstructed genomes from the
+Black Band Disease (BBD) microbial community.
+
+Prokka predicts coding sequences (CDS) and compares them against
+reference databases to assign putative gene functions. Some annotated
+genes are also assigned Enzyme Commission (EC) numbers, which describe
+the biochemical reactions catalysed by enzymes.
+
+These annotations were subsequently used to investigate potential
+metabolic pathways using MinPath.
+
+### Gene Annotation Results
+
+Prokka was successfully run on all 17 selected genome bins.
+
+An initial test was performed using `metabat.5` to examine the gene
+annotation output before processing the remaining bins.
+
+The test annotation identified **917 coding sequences (CDS)** in
+`metabat.5`.
+
+Prokka generated several output files for each genome bin, including:
+
+| Output file | Description |
+|----|----|
+| `.tsv` | Tab-separated gene annotations, including gene identifiers, EC numbers and predicted functions |
+| `.gff` | Genomic feature annotations and their positions |
+| `.faa` | Predicted protein sequences |
+| `.ffn` | Nucleotide sequences of predicted genes |
+| `.txt` | Summary statistics of the annotation |
+
+The `.tsv` files were particularly important for the subsequent
+metabolic pathway analysis because they contained the EC numbers
+assigned to predicted genes.
+
+For `metabat.5`, **318 genes had EC-number annotations** and were
+extracted for MinPath analysis.
+
+### Interpretation
+
+The Prokka results provide information about the potential functional
+capabilities of microorganisms represented in the BBD metagenome.
+
+The identification of protein-coding genes and associated EC numbers
+allows predicted enzyme functions to be linked to metabolic pathways.
+
+However, gene annotations are computational predictions and do not
+necessarily indicate that the corresponding genes are expressed or that
+the predicted metabolic reactions are occurring in the microbial
+community.
+
+Furthermore, incomplete genome bins may lack some genes required for
+particular metabolic pathways, potentially affecting subsequent pathway
+reconstruction.
+
+### Processing Log
+
+The Prokka analysis was performed in the `prokka/` directory.
+
+First, Prokka was tested on one genome bin, `metabat.5`:
+
+``` bash
+cd ~/bbd-metagenome/prokka
+
+bin=metabat.5
+
+prokka --cpus 2 --outdir $bin --prefix $bin ../metabat/bins_bbd/${bin}.fa
+```
+
+The `--cpus 2` option specified two processing threads, `--outdir`
+specified the output directory, and `--prefix` defined the prefix for
+the generated annotation files.
+
+The annotation table was then inspected:
+
+``` bash
+head metabat.5/metabat.5.tsv
+```
+
+After confirming that the test annotation had completed successfully,
+Prokka was run on the selected genome bins using the SLURM script
+[run_prokka.sh](prokka/run_prokka.sh).
+
+The script used a loop to process the bin identifiers listed in
+`bbd_topbins.txt`:
+
+``` bash
+while read bin;do
+  prokka --cpus 2 --outdir $bin --prefix $bin "../metabat/bins_bbd/${bin}.fa";
+done < ../checkm/bbd_topbins.txt
+```
+
+The batch analysis was submitted using:
+
+``` bash
+sbatch run_prokka.sh
+```
+
+The previously annotated `metabat.5` directory already existed when the
+batch job was submitted. Prokka therefore skipped this bin during the
+batch run, while its successful test annotation remained available.
+
+After completion, the annotation tables were checked:
+
+``` bash
+ls prokka/*/*.tsv | wc -l
+```
+
+This verification command was run from the repository root and confirmed
+that annotation tables were available for all 17 selected genome bins.
+
+The resulting `.tsv` files were used to extract EC numbers for metabolic
+pathway inference with MinPath.

@@ -1,7 +1,7 @@
 BBD Metagenome: Binning
 ================
 Rowwyn Lontayao
-2026-11-03
+2026-11-04
 
 ## Genome Binning Using MetaBAT2
 
@@ -16,23 +16,9 @@ contigs. Coverage values were extracted from the Flye assembly
 information file and saved as `depths_bbd.txt`. The assembly sequences
 were then reordered to match the coverage file before running MetaBAT2.
 
-### Commands Used
-
-The following commands were run in the `metabat/` directory.
-
-``` bash
-cd ~/bbd-metagenome/metabat
-
-cat ../flye/bbd/assembly_info.txt | grep -v '#' | awk '{OFS="\t";print $1,$3}' > depths_bbd.txt
-
-cat depths_bbd.txt | awk '{print $1}' | xargs samtools faidx ../flye/bbd/assembly.fasta > assembly_bbd_ordered.fasta
-
-metabat2 -i assembly_bbd_ordered.fasta -a depths_bbd.txt --cvExt -o bins_bbd/metabat --seed 5
-```
-
 ### Binning Results
 
-MetaBAT2 produced the following output:
+MetaBAT2 produced the following results:
 
 | Binning metric                          |        Result |
 |-----------------------------------------|--------------:|
@@ -53,4 +39,43 @@ organisms.
 
 The resulting bins were saved as individual FASTA files in
 `metabat/bins_bbd/` for subsequent assessment of genome completeness and
-contamination using CheckM. \`\`\`
+contamination using CheckM.
+
+### Processing Log
+
+The following commands were run in the `metabat/` directory.
+
+First, the coverage information was extracted from the Flye assembly
+information file:
+
+``` bash
+cd ~/bbd-metagenome/metabat
+
+cat ../flye/bbd/assembly_info.txt | grep -v '#' | awk '{OFS="\t";print $1,$3}' > depths_bbd.txt
+```
+
+The `grep -v '#'` command excluded comment lines, while `awk` extracted
+the contig identifiers and their corresponding coverage values.
+
+Next, the assembled sequences were reordered to match the coverage file:
+
+``` bash
+cat depths_bbd.txt | awk '{print $1}' | xargs samtools faidx ../flye/bbd/assembly.fasta > assembly_bbd_ordered.fasta
+```
+
+This produced `assembly_bbd_ordered.fasta`, containing the contigs in
+the same order as the coverage information.
+
+Finally, MetaBAT2 was run to group the contigs into genome bins:
+
+``` bash
+metabat2 -i assembly_bbd_ordered.fasta -a depths_bbd.txt --cvExt -o bins_bbd/metabat --seed 5
+```
+
+The `-i` option specified the input assembly, `-a` provided the coverage
+information, and `-o` specified the output prefix for the genome bins.
+The `--cvExt` option enabled the use of the supplied coverage
+information, while `--seed 5` set the random seed for reproducibility.
+
+The resulting genome bins were then used for quality assessment with
+CheckM.

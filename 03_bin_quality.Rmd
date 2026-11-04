@@ -10,7 +10,8 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# Bash chunks document commands without rerunning them when knitting.
+
+# Display recorded Bash commands without executing them when knitting.
 knitr::opts_hooks$set(engine = function(options) {
   if (options$engine == "bash") options$eval <- FALSE
   options
@@ -29,53 +30,11 @@ The longest contig from the Flye assembly, `contig_113` (4,706,700 bp), was extr
 
 The 70 MetaBAT2 bins and the additional contig were copied into the `checkm/bins_bbd/` directory, resulting in 71 FASTA files for quality assessment.
 
-### Commands Used for Bin Preparation
-
-The following commands were run in the `checkm/` directory.
-
-```{bash}
-cd ~/bbd-metagenome/checkm
-
-cat ../flye/bbd/assembly.fasta | bioawk -c fastx '{print length($seq),$name}' | sort -n | tail
-
-samtools faidx ../flye/bbd/assembly.fasta contig_113 > ../metabat/bins_bbd/contig_113.fa
-
-mkdir -p bins_bbd
-cp ../metabat/bins_bbd/*.fa bins_bbd/
-
-ls bins_bbd/*.fa | wc -l
-```
-
-### CheckM Analysis
-
-CheckM was run using the `lineage_wf` workflow with six CPU threads and 40 GB of requested memory. The analysis was submitted as a SLURM job.
-
-The script `run_checkm_bbd.sh` contained:
-
-```{bash}
-#!/bin/bash
-#SBATCH --time=60
-#SBATCH --ntasks=6 --mem=40gb
-
-echo "Starting checkm in $(pwd) at $(date)"
-
-shopt -s expand_aliases
-alias checkm='apptainer run -B /pvol/:/pvol /pvol/data/sif/checkm.sif checkm'
-
-checkm lineage_wf bins_bbd out -t 6 -x fa -f checkm_results_bbd.txt
-
-echo "Finished checkm in $(pwd) at $(date)"
-```
-
-The job was submitted using:
-
-```{bash}
-sbatch run_checkm_bbd.sh
-```
-
-All 71 FASTA files were processed successfully, and the quality assessment results were saved to `checkm_results_bbd.txt`.
-
 ### CheckM Results
+
+CheckM was run using the `lineage_wf` workflow to estimate genome completeness and contamination.
+
+The following results were obtained for the six most complete bins:
 
 | Bin | Marker lineage | Completeness (%) | Contamination (%) |
 |---|---|---:|---:|
@@ -94,17 +53,52 @@ These results suggest that the first two bins contain substantially more complet
 
 Following the workshop instructions, bins with estimated completeness greater than 15% were selected for subsequent analysis.
 
-The following commands were used to inspect the CheckM results and save the selected bin identifiers:
+A total of **17 bins** met the completeness threshold and were recorded in `bbd_topbins.txt`.
+
+Although only two bins had completeness above 97%, the additional selected bins may still provide useful information about the BBD microbial community. These selected bins were subsequently used for taxonomic classification with GTDB-Tk and functional annotation with Prokka and MinPath.
+
+### Processing Log
+
+First, the longest contig was identified from the Flye assembly and extracted as a separate FASTA file:
+
+```{bash}
+cd ~/bbd-metagenome/checkm
+
+cat ../flye/bbd/assembly.fasta | bioawk -c fastx '{print length($seq),$name}' | sort -n | tail
+
+samtools faidx ../flye/bbd/assembly.fasta contig_113 > ../metabat/bins_bbd/contig_113.fa
+```
+
+The MetaBAT2 bins and the longest contig were copied into the CheckM input directory:
+
+```{bash}
+cp ../metabat/bins_bbd/*.fa bins_bbd/
+```
+
+CheckM was then run through the SLURM scheduler using the script [run_checkm_bbd.sh](checkm/run_checkm_bbd.sh).
+
+The main analysis command in the script was:
+
+```{bash}
+checkm lineage_wf bins_bbd out -t 6 -x fa -f checkm_results_bbd.txt
+```
+
+The `lineage_wf` option ran the lineage-specific marker gene analysis, `-t 6` used six processing threads, `-x fa` specified the FASTA file extension, and `-f` saved the results to `checkm_results_bbd.txt`.
+
+The job was submitted using:
+
+```{bash}
+sbatch run_checkm_bbd.sh
+```
+
+The CheckM results were examined, and bins with completeness greater than 15% were selected:
 
 ```{bash}
 head -n 20 checkm_results_bbd.txt
 
 cat checkm_results_bbd.txt | awk '$13>15{print $1}' > bbd_topbins.txt
 
-cat bbd_topbins.txt
 wc -l bbd_topbins.txt
 ```
 
-A total of **17 bins** met the completeness threshold and were recorded in `bbd_topbins.txt`.
-
-Although only two bins had completeness above 97%, the additional selected bins may still provide useful information about the BBD microbial community. The selected bins will be used for subsequent taxonomic and functional analyses.
+The resulting `bbd_topbins.txt` file contained 17 bin identifiers for the subsequent analyses.
