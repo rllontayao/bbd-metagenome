@@ -1,6 +1,6 @@
 ---
 title: "The Metagenome of Black Band Disease"
-author: "Your Name"
+author: "Rowwyn Lontayao"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -58,3 +58,4 @@ If you add a step file, add a heading and a child chunk for it below.
 
 ```{r, child = "06_metabolic_pathways.Rmd"}
 ```
+
