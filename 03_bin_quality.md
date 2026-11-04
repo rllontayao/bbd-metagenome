@@ -30,16 +30,93 @@ assessment.
 CheckM was run using the `lineage_wf` workflow to estimate genome
 completeness and contamination.
 
-The following results were obtained for the six most complete bins:
+The CheckM completeness and contamination estimates for the 17 genome
+bins selected for further analysis are presented below, arranged from
+highest to lowest completeness.
 
-| Bin        | Marker lineage      | Completeness (%) | Contamination (%) |
-|------------|---------------------|-----------------:|------------------:|
+``` r
+library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
+library(knitr)
+
+checkm_lines <- readLines("checkm/checkm_results_bbd.txt")
+
+# Keep rows beginning with a genome bin identifier
+checkm_lines <- grep(
+  "^\\s*(contig_|metabat\\.)",
+  checkm_lines,
+  value = TRUE
+)
+
+# Extract the bin, marker lineage and quality statistics
+checkm_table <- lapply(checkm_lines, function(line) {
+  parts <- strsplit(trimws(line), "\\s{2,}")[[1]]
+
+  data.frame(
+    Bin = parts[1],
+    Marker_lineage = parts[2],
+    Completeness = as.numeric(parts[12]),
+    Contamination = as.numeric(parts[13])
+  )
+}) %>%
+  bind_rows()
+
+# Select the bins used for subsequent analyses
+checkm_summary <- checkm_table %>%
+  filter(Completeness > 15) %>%
+  arrange(desc(Completeness)) %>%
+  mutate(
+    Marker_lineage = sub(" \\(UID[0-9]+\\)$", "", Marker_lineage),
+    Marker_lineage = sub("^[a-z]__", "", Marker_lineage)
+  )
+
+kable(
+  checkm_summary,
+  col.names = c(
+    "Genome bin",
+    "Marker lineage",
+    "Completeness (%)",
+    "Contamination (%)"
+  ),
+  digits = 2,
+  caption = "CheckM quality assessment of the 17 selected genome bins"
+)
+```
+
+| Genome bin | Marker lineage      | Completeness (%) | Contamination (%) |
+|:-----------|:--------------------|-----------------:|------------------:|
 | contig_113 | Cytophagales        |            97.62 |              1.64 |
 | metabat.40 | Cyanobacteria       |            97.56 |              0.67 |
 | metabat.41 | Bacteria            |            31.03 |              0.00 |
 | metabat.69 | Bacteria            |            30.28 |              0.00 |
 | metabat.2  | Bacteria            |            29.31 |              0.00 |
 | metabat.29 | Deltaproteobacteria |            28.18 |              0.13 |
+| metabat.21 | Clostridiales       |            22.60 |              0.00 |
+| metabat.34 | Bacteria            |            22.41 |              0.00 |
+| metabat.3  | Bacteria            |            21.55 |              0.00 |
+| metabat.39 | Bacteria            |            21.43 |              0.00 |
+| metabat.1  | Proteobacteria      |            21.00 |              0.00 |
+| metabat.33 | Deltaproteobacteria |            20.79 |              0.00 |
+| metabat.31 | Bacteria            |            19.73 |              0.00 |
+| metabat.55 | Bacteria            |            18.97 |              0.00 |
+| metabat.5  | Bacteria            |            17.54 |              0.00 |
+| metabat.4  | Bacteria            |            17.24 |              0.00 |
+| metabat.44 | Clostridiales       |            16.31 |              0.00 |
+
+CheckM quality assessment of the 17 selected genome bins
 
 The two most complete bins were `contig_113` (97.62%) and `metabat.40`
 (97.56%), both with estimated contamination below 2%. The next most

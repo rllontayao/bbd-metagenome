@@ -38,11 +38,11 @@ The pathway search identified genes associated with PWY-101 in four
 genome bins.
 
 | Genome bin | Gene families found | MinPath pathway retained |
-|------------|--------------------:|--------------------------|
-| contig_113 |              1 of 4 | No                       |
-| metabat.21 |              1 of 4 | Yes                      |
-| metabat.39 |              1 of 4 | No                       |
-| metabat.40 |              4 of 4 | Yes                      |
+|------------|--------------------:|:------------------------:|
+| contig_113 |              1 of 4 |            No            |
+| metabat.21 |              1 of 4 |           Yes            |
+| metabat.39 |              1 of 4 |            No            |
+| metabat.40 |              4 of 4 |           Yes            |
 
 The strongest evidence for photosynthesis was found in `metabat.40`,
 which contained all four gene families associated with PWY-101 and had
@@ -75,8 +75,8 @@ photosynthetic potential in the analysed BBD community.
 The search for PWY-5360 identified a match in only one genome bin.
 
 | Genome bin | Gene families found | MinPath pathway retained |
-|------------|--------------------:|--------------------------|
-| metabat.69 |              1 of 3 | No                       |
+|------------|--------------------:|:------------------------:|
+| metabat.69 |              1 of 3 |            No            |
 
 GTDB-Tk classified `metabat.69` within the order Campylobacterales,
 family Arcobacteraceae and genus *Halarcobacter*.

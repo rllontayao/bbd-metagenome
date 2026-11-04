@@ -13,7 +13,7 @@
 
 <meta name="date" content="2026-11-04" />
 
-<title>The Metagenome of Black Band Disease</title>
+<title>BBD Metagenome: Metabolic Pathways</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1479,7 +1479,7 @@ border-radius: 0px;
 
 
 
-<h1 class="title toc-ignore">The Metagenome of Black Band Disease</h1>
+<h1 class="title toc-ignore">BBD Metagenome: Metabolic Pathways</h1>
 <h4 class="author">Rowwyn Lontayao</h4>
 <h4 class="date">2026-11-04</h4>
 
@@ -1691,53 +1691,175 @@ quality assessment.</p>
 <h3>CheckM Results</h3>
 <p>CheckM was run using the <code>lineage_wf</code> workflow to estimate
 genome completeness and contamination.</p>
-<p>The following results were obtained for the six most complete
-bins:</p>
+<p>The CheckM completeness and contamination estimates for the 17 genome
+bins selected for further analysis are presented below, arranged from
+highest to lowest completeness.</p>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(knitr)
+
+checkm_lines &lt;- readLines(&quot;checkm/checkm_results_bbd.txt&quot;)
+
+# Keep rows beginning with a genome bin identifier
+checkm_lines &lt;- grep(
+  &quot;^\\s*(contig_|metabat\\.)&quot;,
+  checkm_lines,
+  value = TRUE
+)
+
+# Extract the bin, marker lineage and quality statistics
+checkm_table &lt;- lapply(checkm_lines, function(line) {
+  parts &lt;- strsplit(trimws(line), &quot;\\s{2,}&quot;)[[1]]
+
+  data.frame(
+    Bin = parts[1],
+    Marker_lineage = parts[2],
+    Completeness = as.numeric(parts[12]),
+    Contamination = as.numeric(parts[13])
+  )
+}) %&gt;%
+  bind_rows()
+
+# Select the bins used for subsequent analyses
+checkm_summary &lt;- checkm_table %&gt;%
+  filter(Completeness &gt; 15) %&gt;%
+  arrange(desc(Completeness)) %&gt;%
+  mutate(
+    Marker_lineage = sub(&quot; \\(UID[0-9]+\\)$&quot;, &quot;&quot;, Marker_lineage),
+    Marker_lineage = sub(&quot;^[a-z]__&quot;, &quot;&quot;, Marker_lineage)
+  )
+
+kable(
+  checkm_summary,
+  col.names = c(
+    &quot;Genome bin&quot;,
+    &quot;Marker lineage&quot;,
+    &quot;Completeness (%)&quot;,
+    &quot;Contamination (%)&quot;
+  ),
+  digits = 2,
+  caption = &quot;CheckM quality assessment of the 17 selected genome bins&quot;
+)</code></pre>
 <table>
+<caption>CheckM quality assessment of the 17 selected genome
+bins</caption>
 <thead>
 <tr class="header">
-<th>Bin</th>
-<th>Marker lineage</th>
+<th align="left">Genome bin</th>
+<th align="left">Marker lineage</th>
 <th align="right">Completeness (%)</th>
 <th align="right">Contamination (%)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>contig_113</td>
-<td>Cytophagales</td>
+<td align="left">contig_113</td>
+<td align="left">Cytophagales</td>
 <td align="right">97.62</td>
 <td align="right">1.64</td>
 </tr>
 <tr class="even">
-<td>metabat.40</td>
-<td>Cyanobacteria</td>
+<td align="left">metabat.40</td>
+<td align="left">Cyanobacteria</td>
 <td align="right">97.56</td>
 <td align="right">0.67</td>
 </tr>
 <tr class="odd">
-<td>metabat.41</td>
-<td>Bacteria</td>
+<td align="left">metabat.41</td>
+<td align="left">Bacteria</td>
 <td align="right">31.03</td>
 <td align="right">0.00</td>
 </tr>
 <tr class="even">
-<td>metabat.69</td>
-<td>Bacteria</td>
+<td align="left">metabat.69</td>
+<td align="left">Bacteria</td>
 <td align="right">30.28</td>
 <td align="right">0.00</td>
 </tr>
 <tr class="odd">
-<td>metabat.2</td>
-<td>Bacteria</td>
+<td align="left">metabat.2</td>
+<td align="left">Bacteria</td>
 <td align="right">29.31</td>
 <td align="right">0.00</td>
 </tr>
 <tr class="even">
-<td>metabat.29</td>
-<td>Deltaproteobacteria</td>
+<td align="left">metabat.29</td>
+<td align="left">Deltaproteobacteria</td>
 <td align="right">28.18</td>
 <td align="right">0.13</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.21</td>
+<td align="left">Clostridiales</td>
+<td align="right">22.60</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.34</td>
+<td align="left">Bacteria</td>
+<td align="right">22.41</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.3</td>
+<td align="left">Bacteria</td>
+<td align="right">21.55</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.39</td>
+<td align="left">Bacteria</td>
+<td align="right">21.43</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.1</td>
+<td align="left">Proteobacteria</td>
+<td align="right">21.00</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.33</td>
+<td align="left">Deltaproteobacteria</td>
+<td align="right">20.79</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.31</td>
+<td align="left">Bacteria</td>
+<td align="right">19.73</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.55</td>
+<td align="left">Bacteria</td>
+<td align="right">18.97</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.5</td>
+<td align="left">Bacteria</td>
+<td align="right">17.54</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.4</td>
+<td align="left">Bacteria</td>
+<td align="right">17.24</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.44</td>
+<td align="left">Clostridiales</td>
+<td align="right">16.31</td>
+<td align="right">0.00</td>
 </tr>
 </tbody>
 </table>
@@ -1813,46 +1935,123 @@ taxonomic classifications to metagenome-assembled genomes (MAGs).</p>
 <h3>Taxonomic Classification Results</h3>
 <p>GTDB-Tk produced a bacterial classification summary in
 <code>gtdbtk.bac120.summary.tsv</code>.</p>
-<p>Selected classifications relevant to our subsequent metabolic pathway
-analysis are presented below.</p>
+<p>The family, genus and species classifications of the 17 selected
+genome bins are summarised below. Unresolved taxonomic ranks are omitted
+for clarity.</p>
+<pre class="r"><code>library(dplyr)
+library(tidyr)
+library(knitr)
+
+gtdbtk &lt;- read.delim(
+  &quot;gtdbtk/gtdbtk.bac120.summary.tsv&quot;
+)
+
+taxonomy_summary &lt;- gtdbtk %&gt;%
+  select(user_genome, classification) %&gt;%
+  separate_longer_delim(classification, delim = &quot;;&quot;) %&gt;%
+  group_by(user_genome) %&gt;%
+  slice_tail(n = 3) %&gt;%
+  filter(!classification %in% c(&quot;f__&quot;, &quot;g__&quot;, &quot;s__&quot;)) %&gt;%
+  mutate(
+    classification = sub(&quot;^f__&quot;, &quot;Family: &quot;, classification),
+    classification = sub(&quot;^g__&quot;, &quot;Genus: &quot;, classification),
+    classification = sub(&quot;^s__&quot;, &quot;Species: &quot;, classification)
+  ) %&gt;%
+  summarise(
+    short_classification = paste(classification, collapse = &quot;; &quot;),
+    .groups = &quot;drop&quot;
+  ) %&gt;%
+  arrange(user_genome)
+
+kable(
+  taxonomy_summary,
+  col.names = c(&quot;Genome bin&quot;, &quot;Taxonomic classification&quot;),
+  caption = &quot;GTDB-Tk classifications of the selected genome bins&quot;
+)</code></pre>
 <table>
+<caption>GTDB-Tk classifications of the selected genome bins</caption>
 <colgroup>
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
+<col width="12%" />
+<col width="87%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Genome bin</th>
-<th>Phylum</th>
-<th>Order</th>
-<th>Family</th>
-<th>Genus</th>
+<th align="left">Genome bin</th>
+<th align="left">Taxonomic classification</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>metabat.40</td>
-<td>Cyanobacteria</td>
-<td>Cyanobacteriales</td>
-<td>Desertifilaceae</td>
-<td>Roseofilum</td>
+<td align="left">contig_113</td>
+<td align="left">Family: Bernardetiaceae; Genus: UBA2561; Species:
+UBA2561 sp002340355</td>
 </tr>
 <tr class="even">
-<td>metabat.21</td>
-<td>Firmicutes_A</td>
-<td>Lachnospirales</td>
-<td>Vallitaleaceae</td>
-<td>Unclassified</td>
+<td align="left">metabat.1</td>
+<td align="left">Family: Sulfurospirillaceae; Genus:
+Sulfurospirillum_A</td>
 </tr>
 <tr class="odd">
-<td>metabat.69</td>
-<td>Campylobacterota</td>
-<td>Campylobacterales</td>
-<td>Arcobacteraceae</td>
-<td>Halarcobacter</td>
+<td align="left">metabat.2</td>
+<td align="left">Family: Arcobacteraceae; Genus: Halarcobacter</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.21</td>
+<td align="left">Family: Vallitaleaceae</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.29</td>
+<td align="left">Family: Desulforegulaceae</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.3</td>
+<td align="left">Family: Arcobacteraceae; Genus: Poseidonibacter</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.31</td>
+<td align="left">Family: Arcobacteraceae; Genus: Halarcobacter</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.33</td>
+<td align="left">Family: Desulforegulaceae</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.34</td>
+<td align="left">Family: Desulfovibrionaceae; Genus:
+Maridesulfovibrio</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.39</td>
+<td align="left">Family: Desulforegulaceae</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.4</td>
+<td align="left">Family: Flavobacteriaceae; Genus: DT-34</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.40</td>
+<td align="left">Family: Desertifilaceae; Genus: Roseofilum; Species:
+Roseofilum reptotaenium_A</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.41</td>
+<td align="left">Family: Acidaminobacteraceae; Genus: JABXKX01</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.44</td>
+<td align="left">Family: Acidaminobacteraceae; Genus: JABXKX01</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.5</td>
+<td align="left">Family: Vallitaleaceae</td>
+</tr>
+<tr class="even">
+<td align="left">metabat.55</td>
+<td align="left">Family: Saprospiraceae; Genus: Saprospira</td>
+</tr>
+<tr class="odd">
+<td align="left">metabat.69</td>
+<td align="left">Family: Arcobacteraceae; Genus: Halarcobacter</td>
 </tr>
 </tbody>
 </table>
@@ -2078,29 +2277,29 @@ genome bins.</p>
 <tr class="header">
 <th>Genome bin</th>
 <th align="right">Gene families found</th>
-<th>MinPath pathway retained</th>
+<th align="center">MinPath pathway retained</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>contig_113</td>
 <td align="right">1 of 4</td>
-<td>No</td>
+<td align="center">No</td>
 </tr>
 <tr class="even">
 <td>metabat.21</td>
 <td align="right">1 of 4</td>
-<td>Yes</td>
+<td align="center">Yes</td>
 </tr>
 <tr class="odd">
 <td>metabat.39</td>
 <td align="right">1 of 4</td>
-<td>No</td>
+<td align="center">No</td>
 </tr>
 <tr class="even">
 <td>metabat.40</td>
 <td align="right">4 of 4</td>
-<td>Yes</td>
+<td align="center">Yes</td>
 </tr>
 </tbody>
 </table>
@@ -2135,14 +2334,14 @@ bin.</p>
 <tr class="header">
 <th>Genome bin</th>
 <th align="right">Gene families found</th>
-<th>MinPath pathway retained</th>
+<th align="center">MinPath pathway retained</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>metabat.69</td>
 <td align="right">1 of 3</td>
-<td>No</td>
+<td align="center">No</td>
 </tr>
 </tbody>
 </table>

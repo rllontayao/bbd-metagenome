@@ -22,14 +22,78 @@ taxonomic classifications to metagenome-assembled genomes (MAGs).
 GTDB-Tk produced a bacterial classification summary in
 `gtdbtk.bac120.summary.tsv`.
 
-Selected classifications relevant to our subsequent metabolic pathway
-analysis are presented below.
+The family, genus and species classifications of the 17 selected genome
+bins are summarised below. Unresolved taxonomic ranks are omitted for
+clarity.
 
-| Genome bin | Phylum           | Order             | Family          | Genus         |
-|------------|------------------|-------------------|-----------------|---------------|
-| metabat.40 | Cyanobacteria    | Cyanobacteriales  | Desertifilaceae | Roseofilum    |
-| metabat.21 | Firmicutes_A     | Lachnospirales    | Vallitaleaceae  | Unclassified  |
-| metabat.69 | Campylobacterota | Campylobacterales | Arcobacteraceae | Halarcobacter |
+``` r
+library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
+library(tidyr)
+library(knitr)
+
+gtdbtk <- read.delim(
+  "gtdbtk/gtdbtk.bac120.summary.tsv"
+)
+
+taxonomy_summary <- gtdbtk %>%
+  select(user_genome, classification) %>%
+  separate_longer_delim(classification, delim = ";") %>%
+  group_by(user_genome) %>%
+  slice_tail(n = 3) %>%
+  filter(!classification %in% c("f__", "g__", "s__")) %>%
+  mutate(
+    classification = sub("^f__", "Family: ", classification),
+    classification = sub("^g__", "Genus: ", classification),
+    classification = sub("^s__", "Species: ", classification)
+  ) %>%
+  summarise(
+    short_classification = paste(classification, collapse = "; "),
+    .groups = "drop"
+  ) %>%
+  arrange(user_genome)
+
+kable(
+  taxonomy_summary,
+  col.names = c("Genome bin", "Taxonomic classification"),
+  caption = "GTDB-Tk classifications of the selected genome bins"
+)
+```
+
+| Genome bin | Taxonomic classification |
+|:---|:---|
+| contig_113 | Family: Bernardetiaceae; Genus: UBA2561; Species: UBA2561 sp002340355 |
+| metabat.1 | Family: Sulfurospirillaceae; Genus: Sulfurospirillum_A |
+| metabat.2 | Family: Arcobacteraceae; Genus: Halarcobacter |
+| metabat.21 | Family: Vallitaleaceae |
+| metabat.29 | Family: Desulforegulaceae |
+| metabat.3 | Family: Arcobacteraceae; Genus: Poseidonibacter |
+| metabat.31 | Family: Arcobacteraceae; Genus: Halarcobacter |
+| metabat.33 | Family: Desulforegulaceae |
+| metabat.34 | Family: Desulfovibrionaceae; Genus: Maridesulfovibrio |
+| metabat.39 | Family: Desulforegulaceae |
+| metabat.4 | Family: Flavobacteriaceae; Genus: DT-34 |
+| metabat.40 | Family: Desertifilaceae; Genus: Roseofilum; Species: Roseofilum reptotaenium_A |
+| metabat.41 | Family: Acidaminobacteraceae; Genus: JABXKX01 |
+| metabat.44 | Family: Acidaminobacteraceae; Genus: JABXKX01 |
+| metabat.5 | Family: Vallitaleaceae |
+| metabat.55 | Family: Saprospiraceae; Genus: Saprospira |
+| metabat.69 | Family: Arcobacteraceae; Genus: Halarcobacter |
+
+GTDB-Tk classifications of the selected genome bins
 
 The classification of `metabat.40` as *Roseofilum* is particularly
 relevant because this genus includes filamentous cyanobacteria
